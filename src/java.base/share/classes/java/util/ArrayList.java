@@ -197,8 +197,11 @@ public class ArrayList<E> extends AbstractList<E>
      * the storage of an {@code ArrayList} instance.
      */
     public void trimToSize() {
+        // 增加修改次数
         modCount++;
+        // 如果有多余的空间，则进行缩容
         if (size < elementData.length) {
+            // size 大小为 0 时，直接使用 EMPTY_ELEMENTDATA，否则将数据拷贝到一个新数组中
             elementData = (size == 0)
               ? EMPTY_ELEMENTDATA
               : Arrays.copyOf(elementData, size);
@@ -212,10 +215,11 @@ public class ArrayList<E> extends AbstractList<E>
      *
      * @param minCapacity the desired minimum capacity
      */
+    // 保证 elementData 数组容量至少有 minCapacity，可理解为主动扩容
     public void ensureCapacity(int minCapacity) {
         if (minCapacity > elementData.length
-            && !(elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA
-                 && minCapacity <= DEFAULT_CAPACITY)) {
+            && !(elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA  // 当 elementData 是 DEFAULTCAPACITY_EMPTY_ELEMENTDATA 时，
+                 && minCapacity <= DEFAULT_CAPACITY)) {  // 需要 minCapacity > DEFAULT_CAPACITY，因为此时的实际容量就是DEFAULT_CAPACITY
             modCount++;
             grow(minCapacity);
         }
@@ -230,11 +234,12 @@ public class ArrayList<E> extends AbstractList<E>
      */
     private Object[] grow(int minCapacity) {
         int oldCapacity = elementData.length;
+        // 如果原容量 > 0, 或者数组不是 DEFAULTCAPACITY_EMPTY_ELEMENTDATA 时，计算新的数组大小，并创建扩容
         if (oldCapacity > 0 || elementData != DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
             int newCapacity = ArraysSupport.newLength(oldCapacity,
-                    minCapacity - oldCapacity, /* minimum growth */
-                    oldCapacity >> 1           /* preferred growth */);
-            return elementData = Arrays.copyOf(elementData, newCapacity);
+                    minCapacity - oldCapacity, /* minimum growth */ // 大多数情况下是 1
+                    oldCapacity >> 1           /* preferred growth */); // 右移一位相当于除以 2^1
+            return elementData = Arrays.copyOf(elementData, newCapacity); // 建立新数组
         } else {
             return elementData = new Object[Math.max(DEFAULT_CAPACITY, minCapacity)];
         }
@@ -450,9 +455,12 @@ public class ArrayList<E> extends AbstractList<E>
      * which helps when add(E) is called in a C1-compiled loop.
      */
     private void add(E e, Object[] elementData, int s) {
+        // 如果容量不够，进行扩容
         if (s == elementData.length)
             elementData = grow();
+        // 容量够直接添加
         elementData[s] = e;
+        // size 加一
         size = s + 1;
     }
 
@@ -463,7 +471,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @return {@code true} (as specified by {@link Collection#add})
      */
     public boolean add(E e) {
-        modCount++;
+        modCount++;  // 在父类 AbstractList 上，定义了 modCount 属性，用于记录数组修改次数
         add(e, elementData, size);
         return true;
     }
@@ -477,13 +485,19 @@ public class ArrayList<E> extends AbstractList<E>
      * @param element element to be inserted
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+
+    // 插入单个元素到指定位置
     public void add(int index, E element) {
+        // 校验位置是否在数组范围内
         rangeCheckForAdd(index);
+        // 增加数组修改次数
         modCount++;
+        // 如果数组大小不够，进行扩容
         final int s;
         Object[] elementData;
         if ((s = size) == (elementData = this.elementData).length)
             elementData = grow();
+        // 将从 index 开始的 s- index 个数据拷贝到 index + 1 开始的位置上, 即：将 index 开始的数据往后挪一位
         System.arraycopy(elementData, index,
                          elementData, index + 1,
                          s - index);
